@@ -1,0 +1,23 @@
+
+
+devices:
+  "xx:xx:xx:xx:xx:xx": # the mac address of a device to monitor
+    name: "name"   # Friendly name used in logs
+    hubitatId: 123 # Device id of the presence sensor in Hubitat to associate with this device
+    minRSSI: -50   # Optionally use RSSI value to consider the device "present". Remove this line to consider the device present as soon as it's "seen"
+  "yy:yy:yy:yy:yy:yy": # mac address of another device to monitor
+    name: "name2"   # Friendly name used in logs
+    hubitatId: 456 # Device id of the presence sensor in Hubitat to associate with this device
+    minRSSI: -50   # Optionally use RSSI value to consider the device "present". Remove this line to consider the device present as soon as it's "seen"
+
+
+# Connection info to the Hubitat hub.
+# Note: the device running the script and the hubitat hub need to be on the same LAN
+hubitat:
+  url: 'http://ipaddress/'               # What you type in the browser to log on to Hubitat
+  appid: 123                             # Log in to Hubitat, go in Apps, Maker API. The Id in is in the url
+  token: 'enter your hubitat token here' # Log in to Hubitat, go in Apps, Maker API, The token is in the examples
+  
+main:
+  logverbosity: INFO # By increasing level of verbosity: FATAL, ERROR, WARNING, INFO, DEBUG
+  wait_seconds: 180  # How much to wait between two device scans
