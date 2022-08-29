@@ -1,164 +1,87 @@
 # Hubitat Bluetooth presence detection
 
-This app allows for reporting to Hubitat the proximity of Bluetooth (BT) devices to a specific device (called from here on "the scanner device"), via virtual presence devices in Hubitat.
+This app allows for reporting to Hubitat the proximity of Bluetooth devices (called from here on "BT device(s)") to a specific device (called from here on "the BT scanner"), via virtual presence devices in Hubitat.
 
 ## Caveats
 
-This is not an exact science. Here's a non-exhaustive list of issues that can impact the reliability:
+This is not an exact science. Here's a non-exhaustive list of issues that can impact the scanner's reliability:
 * Not all BT devices advertise their existence.
 * Those that do may not do so continuously (for example, phones may only advertise when in the BT settings).
-* Those that do continuously may not be on continuously (for example, may go to sleep to save on battery).
-* The strength of the BT signal (RSSI, Received Signal Strength Indicator) is affected by the environment, the device's battery levels, etc.
+* Devices may not be on all the time, or when on may regularly turn off their BT component to conserve power.
+* The strength of the BT signal (RSSI, Received Signal Strength Indicator) is affected by the environment (walls, other devices), the device's battery levels, etc.
+* Some BT devices constantly randomize their MAC address for privacy reasons. If the BT device is not paired with the scanner device, the BT scanner may only get random non-static (constantly changes) MAC addresses from the BT device, which prevents from identifying/tracking the device.
+* Some BT devices will stop advertising their presence when accessed. For example, Tile trackers will stop advertising their presence if the Tile app is opened on a nearby phone (this is also why only one phone can "Find" a given Tile at any given time).
 
 ## Pre-requisites
 
 * A Hubitat hub.
 * A linux device on the same LAN as the Hubitat hub that will be performing the scanning.
-* The scanner device has a BT adapter. This can be an integrated one or a USB one.
-  Note: raspberry 3 and later have an integrated one.
+* The BT scanner has a BT adapter. This can be an integrated one or a USB one.
+  Note: raspberry 3 and later have an integrated BT adapter.
 * The `bluetoothctl` and `btmgmt` commands are available on the scanner device. 
   If missing, `apt install bluez` may fix it.
 
-## Setup
+## Finding the mac address(es)
 
-### Determining the device(s) mac addresses
+The BT scanner needs to know what mac address(es) to monitor and what virtual presence devices in Hubitat they map to.
+MAC adresses are of the form xx:xx:xx:xx:xx:xx with each x a letter between A and F or a digit. 
 
-These are of the form xx:xx:xx:xx:xx:xx with each x a digit or a letter between A and F. 
+Your task is to end with a list of pairs (mac address, device name).
 
-The app needs to know what mac addresse(s) to report and what virtual presence devices in Hubitat they map to.
-If your location has a large number of BT devices, figuring out these mappings can be hard. 
+### List all devices with stable MAC addresses
 
-The easiest option may asking directly the BT device (e.g., going in the phone's settings for a phone)
-or the app that manages it.
+The BT scanner can only track devices with stable mac addresses. To determine these:
+* From the BT scanner, run: `python3 list_all --output first.txt`
+* Wait 15 minutes
+* Run: `python3 list_all --output second.txt`
+* Run: `comm -1 -2 before.txt after.txt`
 
-If that's not possible, here's the manual & hard way to figure these out:
+The resulting list is all BT mac addresses that were seen in both scanning sessions, meaning devices that are more likely not to randomize their mac or to stop to advertise their presence.
 
-* From the scanner device, run `sudo bluetoothctl`
-* From the interactive prompt, type `scan on`
-* Note the MAC addresses of the device(s) of interest
-  * Sometimes the device manufacturer is nice and provide the name. Older versions of Tile did just that. Newers don't appear to.
-  * While the scan is running some devices will appear and disappear. Unfortunately this doesn't mean they go in/out of range. Not all devices reliably advertise.
+### The easiest way
+
+The easiest option is to ask directly the BT device (for example in the case of a phone, by going in the phone's settings, about section) or the app that manages it.
+
+If this address is not in the previous list, you may need to do one of these:
+* Turn on BT on the BT device
+* Disable MAC randomization on the BT device: a [privacy feature](https://www.bluetooth.com/blog/bluetooth-technology-protecting-your-privacy/) meant to prevent tracking, which is what we're trying to do here
+* Explicitly pair the BT device with the BT scanner. The process for pairing a device to a raspberry pi is explained [here](https://pimylifeup.com/raspberry-pi-bluetooth).
+
+
+### Harder ways
+
+If that's not possible, here's a manual way to figure the mac adresses that may be of interest:
+
+* From the BT scanner, run: `sudo stdbuf -oL hcitool lescan`
+* `Ctrl-C` to stop the scan.
+
+Or, for a more interactive way:
+* From the BT scanner, run :`sudo bluetoothctl`
+* From the interactive prompt: `scan on`
+* type `info xx:xx:xx:xx:xx:xx` for a given mac address that showed up. Sometimes the Name, Alias or UUID will provide a clue as to what device it corresponds to.
 * Type `scan off` to stop the scan, followed by `exit`
 
-You should end with a list of pairs (mac address, device name).
+Note: while the scan is running some devices will appear and disappear. Unfortunately this doesn't mean they go in/out of range. Not all devices constantly advertise and constantly keep the same MAC address.
 
-## Deciding with or without RSSI
+### The hardest ways
 
-The app can treat the device present or absent based on the presence   
+Another approach is running `sudo btmgmt find | grep rssi | cut -d ' ' -f 3 | sort` once with the BT device on/near and once with the device off or away and comparing results. This can be hard when there are many BT devices with random MAC addresses in the vicinity.
 
-## App
+## Deciding to integeate with or without RSSI
 
-sudo btmgmt find
+RSSI is a measure of the strength of the signal between the BT scanner and the BT device.
+RSSI values are negative. The closer the value is to 0, the stronger the signal is and the closer the BT device is from the BT scanner. Below is an estimate of the relationship RSSI to distance. 
 
-## Background research
+|RSSI value |Probable distance     |
+|-----------|----------------------|
+| >=-55     |Very close, few meters|
+|-55 to -67 |Same room             |
+|-67 to -80 |Same house            |
+|-80 to -90 |Neighbors             |
+| <= -90    |Even further          |
 
-Tried multiple approaches, such as using gattlib, [bluescan](https://pypi.org/project/bluescan/) & [pybluez](https://github.com/pybluez/pybluez) packages. The only method that yielded satisfactory results
-was using the btmgmt command line application.
-Also tried some code [here](https://github.com/dagar/bluetooth-proximity), [here](https://github.com/ewenchou/bluetooth-proximity) and [here](https://github.com/noelportugal/tilefinder)
+Note: RSSI is not only affected by distance, but also by the environment (presence and type of walls, interferences, ...) and by the characteristics of the BT device (battery level, type of antenna, ...).
 
- 
-
-Julie's Lanyard
-Greg Bag
-
-[NEW] Device E0:C0:E1:0C:DF:B1 Tile == Sam Wallet????
-[NEW] Device CB:29:34:B5:C1:55 Tile
-[NEW] Device D5:6E:93:8F:14:19 Tile
-
-
-sudo apt install pkg-config libboost-python-dev libboost-thread-dev libbluetooth-dev libglib2.0-dev python-dev
-
-Bluescan: promissing?
-
-
-Javascript. Potentially what I need but very old
-
-
-
-running in docker:
-https://medium.com/george-adams-iv/using-raspberry-pi-3-s-bluetooth-in-docker-e9cdf6062d6a
-
-
-https://github.com/geowa4/rpi/blob/master/docker/rpi-blue-python/Dockerfile
-
-
-This guy worked a shit ton to get the RSSI value!!
-https://askubuntu.com/questions/902598/how-do-we-get-rssi-values-from-bluetooth-beacons-estimote-to-be-specific-in-li
-
-
-
-
-
-gatttool -b E0:C0:E1:0C:DF:B1 -t random --interactive
-
-[DEL] Device CB:29:34:B5:C1:55 Tile
-[DEL] Device D5:6E:93:8F:14:19 Tile
-[DEL] Device E0:C0:E1:0C:DF:B1 Tile
-
-
-
-[NEW] Device CB:29:34:B5:C1:55 Tile
-[NEW] Device E0:C0:E1:0C:DF:B1 Tile
-
-[bluetooth]# info D5:6E:93:8F:14:19
-Device D5:6E:93:8F:14:19 (random)
-        Name: Tile
-        Alias: Tile
-        Paired: no
-        Trusted: no
-        Blocked: no
-        Connected: no
-        LegacyPairing: no
-        UUID: Tile, Inc.                (0000feed-0000-1000-8000-00805f9b34fb)
-        ServiceData Key: 0000feed-0000-1000-8000-00805f9b34fb
-        ServiceData Value:
-  02 00 a1 1d a1 17 7f 40 93 a2                    .......@..
-        RSSI: -68
-
-
-[bluetooth]# info E0:C0:E1:0C:DF:B1
-Device E0:C0:E1:0C:DF:B1 (random)
-        Name: Tile
-        Alias: Tile
-        Paired: no
-        Trusted: no
-        Blocked: no
-        Connected: no
-        LegacyPairing: no
-        UUID: Tile, Inc.                (0000feed-0000-1000-8000-00805f9b34fb)
-        ServiceData Key: 0000feed-0000-1000-8000-00805f9b34fb
-        ServiceData Value:
-  02 00 d1 a9 a0 be c4 a2 2c 47                    ........,G
-        RSSI: -55
-
-[bluetooth]# info D5:6E:93:8F:14:19
-Device D5:6E:93:8F:14:19 (random)
-        Name: Tile
-        Alias: Tile
-        Paired: no
-        Trusted: no
-        Blocked: no
-        Connected: no
-        LegacyPairing: no
-        UUID: Tile, Inc.                (0000feed-0000-1000-8000-00805f9b34fb)
-        ServiceData Key: 0000feed-0000-1000-8000-00805f9b34fb
-        ServiceData Value:
-  02 00 2e de 97 ec 01 ce 07 c5                    ..........
-        RSSI: -70
-
-
-
-2022-08-23 16:40:10,134 - root - WARNING - Not tracking tile 'SamBag' (42c8c607de974372).
-2022-08-23 16:40:10,134 - root - WARNING - Not tracking tile 'Greg Backpack' (5324c7262da7c1c2).
-2022-08-23 16:40:10,134 - root - INFO - Tracking tile 'Milou' (5839811d6d7fb754).
-2022-08-23 16:40:10,134 - root - WARNING - Not tracking tile 'MilouBig' (5879382075875559).
-2022-08-23 16:40:10,134 - root - WARNING - Not tracking tile 'Julie's lanyard' (9c7151b967b44c6b).
-2022-08-23 16:40:10,134 - root - WARNING - Not tracking tile 'SamWallet' (bbbeb9f37ccd4e55).
-2022-08-23 16:40:10,134 - root - WARNING - Not tracking tile 'Greg Bag' (bc1f34efaa184c11).
-2022-08-23 16:40:10,134 - root - WARNING - Not tracking tile 'GregS21' (p!44300b88a6a74a8354cadd9fb04f1a74).
-2022-08-23 16:40:10,134 - root - WARNING - Not tracking tile 'SevenOf9' (p!5c5247a6f1e90446138b411675d4c7ca).
-2022-08-23 16:40:10,134 - root - WARNING - Not tracking tile 'David’s iPhone' (p!8cfd90904694762c85d2b6cbefadcae7).
-2022-08-23 16:40:10,135 - root - WARNING - Not tracking tile 'iPhone' (p!98b5e498b3cd57245adb5ed155e50e8b).
-2022-08-23 16:40:10,135 - root - WARNING - Not tracking tile 'ElevenOf27' (p!ff1bf6560aeb5c809ba5b93e5dc3edb4).
-
+The app can treat the device present or absent based on the RSSI value.
+This can be useful to differentiate BT device in the same room as BT scanner vs. in the same house vs. no-where near the BT scanner.   
 

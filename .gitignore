@@ -1,5 +1,7 @@
 # Config file
 config.yaml
+# Default output file for list_all.py
+output.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
