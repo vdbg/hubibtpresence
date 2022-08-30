@@ -5,7 +5,7 @@ import logging
 
 from collector import Collector
 
-logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.DEBUG)
+logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=logging.DEBUG)
 
 
 def gather(file: str, extra: int, rssi_print: bool, rssi_min: int) -> None:
@@ -13,7 +13,7 @@ def gather(file: str, extra: int, rssi_print: bool, rssi_min: int) -> None:
     output = open(file, "w")
     collector = Collector()
     collector.gather_all(extra)
-    for mac, rssi in sorted(collector.devices_found.items()):
+    for mac, rssi in sorted(collector.devices_rssi.items()):
         if rssi_print:
             output.write(f"{mac}, {rssi}")
         else:
