@@ -17,8 +17,9 @@ BT tracking is not an exact science. Here's a non-exhaustive list of issues that
 ## Pre-requisites
 
 * A Hubitat hub.
-* A device (the BT scanner) on the same LAN as the Hubitat hub that will be performing the scanning. 
-* Linus installed on the BT scanner: while Python is cross platform, this app depends on the `btmgmt` utility that's only available on Linux.
+* A device (the BT scanner) on the same LAN as the Hubitat hub that will be performing the scanning.
+* Linux installed on the BT scanner: while Python is cross platform, this app depends on the `btmgmt` utility that's only available on Linux.
+* Python 3.9 and pip3 installed on the BT scanner. Run `sudo apt-get install python3-pip` if missing.
 * The `bluetoothctl` and `btmgmt` commands are installed on the BT scanner. If missing, `apt install bluez` may fix it.
 * The BT scanner has a BT adapter. This can be an integrated one or a USB one.
   Note: raspberry 3 and later have an integrated BT adapter.
@@ -33,8 +34,9 @@ Your task is to end with a list of pairs (MAC address, device name).
 
 ### List all devices with stable MAC addresses
 
-The BT scanner can only track devices with stable MAC addresses. To determine these:
-* From the BT scanner, run: `python3 list_all --output first.txt`
+The BT scanner can only track devices with stable MAC addresses. To determine these, run the following from the folder where the app was downloaded:
+* `pip3 install -r requirements.txt`
+* `python3 list_all --output first.txt`
 * Wait 15 minutes
 * Run: `python3 list_all --output second.txt`
 * Run: `comm -1 -2 before.txt after.txt`
@@ -85,3 +87,9 @@ Note: RSSI is not only affected by distance, but also by the environment (presen
 
 The app can optionally treat the device present or absent based on the RSSI value, when the `minRSSI` value is provided in `config.yaml`.    
 
+## Running the tool
+
+Once everything is configured, run the following from the folder where the app was downloaded:
+
+* `pip3 install -r requirements.txt`
+* `python3 main.py`
