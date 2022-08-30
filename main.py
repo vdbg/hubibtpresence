@@ -68,12 +68,13 @@ def main() -> None:
 
             devices = config["devices"]
 
-            report(scan_count, devices, hubitat)
+            while True:
+                report(scan_count, devices, hubitat)
 
-            if loop_seconds <= 0:
-                exit(0)
+                if loop_seconds <= 0:
+                    exit(0)
 
-            sleep(loop_seconds)
+                sleep(loop_seconds)
 
     except FileNotFoundError as e:
         logging.error(f"Missing {CONFIG_FILE} file.")
@@ -84,5 +85,4 @@ def main() -> None:
         exit(1)
 
 
-while True:
-    main()
+main()
