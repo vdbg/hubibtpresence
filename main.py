@@ -26,13 +26,13 @@ def report(runs: int, devices: dict, hubitat: Hubitat) -> None:
         if data and "name" in data:
             name = name + " (" + data["name"] + ")"
         present: bool = False
+        rssi = None
         if device.upper() in devices_found:
             minRSSI = data.get("minRSSI", -1000)
-            if devices_found[device] > minRSSI:
-                present = True
-            logging.info(f"Device {name} is {'PRESENT' if present else 'ABSENT'}; RSSI={devices_found[device]}.")
-        else:
-            logging.info(f"Device {name} is ABSENT.")
+            rssi = devices_found[device]
+            present = rssi > minRSSI
+
+        logging.info(f"{'PRESENT' if present else ' ABSENT'} - {name} - RSSI={rssi} ")
 
         hubitatId: int = data.get("hubitatId", -1)
         if hubitatId > 0:
