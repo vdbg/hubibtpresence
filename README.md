@@ -23,7 +23,7 @@ BT tracking is not an exact science. Here's a non-exhaustive list of issues that
 * The `bluetoothctl` and `btmgmt` commands are installed on the BT scanner. If missing, `apt install bluez` may fix it.
 * The BT scanner has a BT adapter. This can be an integrated one or a USB one.
   Note: raspberry 3 and later have an integrated BT adapter.
-* `sudo` permissions for the account running the app (a `btmgmt` requirement).
+* Password-less `sudo` permissions for the account running the app (a `btmgmt` requirement).
 
 ## Finding the MAC address(es)
 

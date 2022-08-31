@@ -10,17 +10,13 @@ logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=lo
 
 def gather(file: str, extra: int, rssi_print: bool, rssi_min: int) -> None:
     logging.info(f"Collecting BT devices with RSSI value >= {rssi_min} to file {file}.")
-    output = open(file, "w")
     collector = Collector()
     collector.gather_all(extra)
-    for mac, rssi in sorted(collector.devices_rssi.items()):
-        if rssi_print:
-            output.write(f"{mac}, {rssi}")
-        else:
-            output.write(mac)
-        output.write("\n")
 
-    output.close()
+    with open(file, "w") as output:
+        for mac, rssi in sorted(collector.devices_rssi.items()):
+            output.write(f"{mac}, {rssi}" if rssi_print else mac)
+            output.write("\n")
 
 
 parser = argparse.ArgumentParser()

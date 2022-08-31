@@ -1,5 +1,3 @@
-
-
 devices:
   "xx:xx:xx:xx:xx:xx": # The mac address of a device to monitor.
     name: "name"   # Friendly name used in logs.
