@@ -1,0 +1,22 @@
+devices:
+  "xx:xx:xx:xx:xx:xx": # The mac address of a device to monitor.
+    name: "name"   # Friendly name used in logs.
+    hubitatId: 123 # Optionally update the presnce of this virtual presence sensor in Hubitat.
+    minRSSI: -50   # Optionally use RSSI value to consider the device "present". Remove this line to consider the device present as soon as it's "seen".
+  "yy:yy:yy:yy:yy:yy": # Mac address of another device to monitor.
+    name: "name2"   # Friendly name used in logs.
+    hubitatId: 456 # Optionally update the presnce of this virtual presence sensor in Hubitat.
+    minRSSI: -50   # Optionally use RSSI value to consider the device "present". Remove this line to consider the device present as soon as it's "seen".
+
+
+# Connection info to the Hubitat hub. This section can be commented out when testing Bluetooth detection.
+# Note: the device running the script and the hubitat hub need to be on the same LAN.
+hubitat:
+  url: 'http://ipaddress/'               # What you type in the browser to log on to Hubitat.
+  appid: 123                             # Log in to Hubitat, go in Apps, Maker API. The Id in is in the url.
+  token: 'enter your hubitat token here' # Log in to Hubitat, go in Apps, Maker API, The token is in the examples.
+  
+main:
+  logverbosity: INFO # By increasing level of verbosity: FATAL, ERROR, WARNING, INFO, DEBUG.
+  scan_count: 3      # How many scans to perform per report. Doing multiple scans helps with accuracy of presence and RSSI value.
+  wait_seconds: 180  # How much to wait between two device scan reports. <=0 value to run only once for testing.
