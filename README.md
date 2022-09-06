@@ -118,6 +118,7 @@ It is recommended to test/tune the scanner before moving to containers. Once tes
 ```
 sudo docker run -d \
   --name hubibtpresence \
+  --restart always \
   -v path_to_your/config.yaml:/app/config.yaml \
   --privileged --net=host \
   name_of_image

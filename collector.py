@@ -13,18 +13,28 @@ class Collector:
         self.devices_rssi: dict[str, int] = {}
 
     def run(self) -> None:
-        result = subprocess.run(['sudo', 'btmgmt', 'find'], stdout=subprocess.PIPE)
+        # Piping 'hello' to stdin because otherwise btmgmt will silently fail in docker containers
+        # https://www.spinics.net/lists/linux-bluetooth/msg85222.html
+        result = subprocess.run(['sudo', 'btmgmt', 'find'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, input='hello', text=True)
 
         if result.returncode != 0:
-            logging.error(f"Unable to run {result.args}.")
+            logging.error(f"Unable to run {result.args}; failed with error code {result.returncode}.")
             return
 
-        for match in re.findall(RSSI_REGEX, result.stdout.decode('utf-8'), re.MULTILINE):
+        devices_found: int = 0
+
+        for match in re.findall(RSSI_REGEX, result.stdout, re.MULTILINE):
+            devices_found += 1
             rssi: int = int(match[1])
             mac: str = match[0]
             rssi_previous = self.devices_rssi.get(mac, rssi)
             # for rssi a bigger value (closer to zero) is better
             self.devices_rssi[mac] = max(rssi, rssi_previous)
+
+        if not devices_found:
+            logging.warning(f"No devices found. Output: {result.stdout}")
+        else:
+            logging.debug(f"Found {devices_found} device(s).")
 
     def run_times(self, times: int) -> None:
         for _ in range(times):
