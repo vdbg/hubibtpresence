@@ -77,7 +77,7 @@ def main() -> None:
                 sleep(loop_seconds)
 
     except FileNotFoundError as e:
-        logging.error(f"Missing {CONFIG_FILE} file.")
+        logging.error(f"Missing {e.filename}.")
         exit(2)
 
     except Exception as e:
