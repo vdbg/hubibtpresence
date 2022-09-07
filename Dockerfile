@@ -10,12 +10,10 @@ USER hubibtpresence
 
 WORKDIR /app
 
-# set environment variables
-# PYTHONDONTWRITEBYTECODE: Prevents Python from writing pyc files to disc
-# PYTHONUNBUFFERED: Prevents Python from buffering stdout and stderr
+# Prevents Python from writing pyc files to disc
 ENV PYTHONDONTWRITEBYTECODE 1
+# Prevents Python from buffering stdout and stderr
 ENV PYTHONUNBUFFERED 1
-
 # Install location of upgraded pip
 ENV PATH /home/hubibtpresence/.local/bin:$PATH
 
@@ -28,4 +26,3 @@ COPY *.py                 /app/
 COPY template.config.yaml /app/
 
 ENTRYPOINT python main.py
-
