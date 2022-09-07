@@ -121,12 +121,12 @@ sudo docker run -d \
   --restart always \
   -v path_to_your/config.yaml:/app/config.yaml \
   --privileged --net=host \
-  name_of_image
+  image_name
 ```
 
 With:
 * `path_to_your/config.yaml`: the full path to the properly configured config.yaml
-* `name_of_image`: `vdbg/hubibtpresence` if using the pre-built image, or the name you gave if built locally from the sources with `sudo docker build -t name_of_image hubibtscan`
+* `image_name`: `vdbg/hubibtpresence` if using the pre-built image, or the name you gave if built locally from the sources with `sudo docker build -t image_name hubibtscan`
 * `--privileged --net=host`: required options for the app to be able to access the BT scanner's BT adapter from the container
 
 Note: when the app within the container is performing its scans (every 3 minutes by default), the host won't be able to use BT anymore. For example `sudo btmgmt find` on the host will return `Unable to start discovery. status 0x0a (Busy)` during this time.
