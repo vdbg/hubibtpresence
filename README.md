@@ -11,7 +11,7 @@ BT tracking is not an exact science. Here's a non-exhaustive list of issues that
 * Those that do may not do so continuously (for example, phones may only advertise when in the BT settings).
 * Devices may not be on all the time, or when on may regularly turn off their BT stack to conserve power.
 * The strength of the BT signal (RSSI, Received Signal Strength Indicator) is affected by the environment (walls, other devices), the device's battery levels, etc.
-* Some BT devices constantly constantly randomize their MAC address for privacy reasons. If the BT device is not paired with the scanner device, the BT scanner may only see constantly changing MAC addresses from the BT device, which prevents from identifying/tracking the device.
+* Some BT devices constantly randomize their MAC address for privacy reasons. If the BT device is not paired with the scanner device, the BT scanner may only see constantly changing MAC addresses from the BT device, which prevents from identifying/tracking the device.
 * Some BT devices will stop advertising their presence when accessed. For example, Tile trackers will stop advertising their presence if the Tile app is opened on a nearby phone (this is also why only one phone can "Find" a given Tile at any given time).
 
 ## Pre-requisites
