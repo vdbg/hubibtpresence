@@ -2,7 +2,9 @@
 
 from pathlib import Path
 import logging
+import platform
 from time import sleep
+import sys
 import yaml
 
 from collector import Collector
@@ -42,9 +44,15 @@ def report(runs: int, devices: dict, hubitat: Hubitat) -> None:
 
 
 CONFIG_FILE = "config.yaml"
+SUPPORTED_PYTHON_MAJOR = 3
+SUPPORTED_PYTHON_MINOR = 9
 
 
 def main() -> None:
+
+    if sys.version_info < (SUPPORTED_PYTHON_MAJOR, SUPPORTED_PYTHON_MINOR):
+        raise Exception(f"Python version {SUPPORTED_PYTHON_MAJOR}.{SUPPORTED_PYTHON_MINOR} or later required. Actual version: {platform.python_version()}.")
+
     try:
         with open(Path(__file__).with_name(CONFIG_FILE)) as config_file:
 
