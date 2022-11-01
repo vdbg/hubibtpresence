@@ -51,7 +51,7 @@ SUPPORTED_PYTHON_MINOR = 9
 def main() -> None:
 
     if sys.version_info < (SUPPORTED_PYTHON_MAJOR, SUPPORTED_PYTHON_MINOR):
-        raise Exception(f"Python version {SUPPORTED_PYTHON_MAJOR}.{SUPPORTED_PYTHON_MINOR} or later required. Actual version: {platform.python_version()}.")
+        raise Exception(f"Python version {SUPPORTED_PYTHON_MAJOR}.{SUPPORTED_PYTHON_MINOR} or later required. Current version: {platform.python_version()}.")
 
     try:
         with open(Path(__file__).with_name(CONFIG_FILE)) as config_file:
