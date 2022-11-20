@@ -22,7 +22,7 @@ BT tracking is not an exact science. Here's a non-exhaustive list of issues that
   Note: raspberry 3 and later have an integrated BT adapter.
 * Linux installed on the BT scanner: while Python is cross platform, this app depends on the `btmgmt` utility that is only available on Linux.
 * The `bluetoothctl` and `btmgmt` commands are installed on the BT scanner. If missing, `apt install bluez` may fix it.
-* Python 3.9 and pip3 installed on the BT scanner. Run `sudo apt-get install python3-pip` if missing.
+* Python 3.9+ and pip3 installed on the BT scanner. Run `sudo apt-get install python3-pip` if missing.
 * Passwordless `sudo` permissions for the account running the app (a `btmgmt` requirement).
 * Note: app can run in a [Docker](https://www.docker.com/) container on the BT scanner (instructions below). It is however recommended to do initial setup directly on the host.
 

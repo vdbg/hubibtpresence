@@ -1,3 +1,5 @@
+# VS Code
+.vscode/
 # Config file
 config.yaml
 # Default output file for list_all.py
