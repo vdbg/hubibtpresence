@@ -7,7 +7,8 @@ from pyhubitat import MakerAPI
 class Device:
     def __init__(self, conf: dict) -> None:
         self.name: str = f"'{conf['label']}' ({conf['id']})"
-        self.presence: str = None
+        attributes = conf.get("attributes", dict())
+        self.presence = attributes.get('presence', None)
 
 
 class Hubitat:
@@ -22,19 +23,20 @@ class Hubitat:
             logging.debug("Refreshing all devices cache")
             self._devices_cache = {int(x["id"]): Device(x) for x in self._api.list_devices_detailed() if x["type"] == "Virtual Presence"}
             for device in self._devices_cache.values():
-                logging.info(f"Found Hubitat virtual presence device {device.name}.")
+                logging.debug(f"Found Hubitat virtual presence device {device.name}.")
 
         return self._devices_cache
 
     def set_presence(self, id: int, arrived: bool) -> None:
         command: str = 'arrived' if arrived else 'departed'
+        state: str = 'present' if arrived else 'not present'
         device: Device = self.get_all_devices().get(id, None)
         if not device:
             logging.warn(f"Device {id} not found in Hubitat.")
             return
-        if command == device.presence:
-            logging.debug(f"Presence for {device.name} hasn't changed.")
+        if state == device.presence:
+            logging.info(f"Presence for {device.name} hasn't changed.")
             return
-        logging.info(f"Sending command {command} to Hubitat device {device.name}")
+        logging.info(f"Sending command {command} to Hubitat device {device.name} that was previously {device.presence}")
         self._api.send_command(id, command)
-        device.presence = command
+        device.presence = state
