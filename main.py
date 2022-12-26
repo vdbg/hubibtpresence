@@ -16,14 +16,14 @@ logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=lo
 def report(runs: int, devices: dict, hubitat: Hubitat) -> None:
     logging.info(f"Running bluetooth scanning up to {runs} time(s)...")
 
-    devices_to_find: set = set(map(str.upper, devices.keys))
+    devices_to_find: set = set(map(str.upper, devices.keys()))
     collector = Collector()
+    devices_present = set()
 
     for _ in range(runs):
         collector.run()
 
         devices_found = collector.devices_rssi
-        devices_to_remove = set()
 
         if logging.root.isEnabledFor(logging.DEBUG):
             for mac, rssi in sorted(devices_found.items()):
@@ -32,28 +32,28 @@ def report(runs: int, devices: dict, hubitat: Hubitat) -> None:
         for device in devices_to_find:
             name = device
             data = devices[name]
-            if data and "name" in data:
-                name = name + " (" + data["name"] + ")"
-            present: bool = False
             rssi = None
             if device in devices_found:
                 minRSSI = data.get("minRSSI", -1000)
                 rssi = devices_found[device]
-                present = rssi > minRSSI
-                if present:
-                    devices_to_remove.add(device)
+                if rssi > minRSSI:
+                    devices_present.add(device)
 
-            logging.info(f"{'PRESENT' if present else ' ABSENT'} - {name} - RSSI={rssi} ")
+        if len(devices_present) == len(devices_to_find):
+            break
 
-            hubitatId: int = data.get("hubitatId", -1)
-            if hubitatId > 0:
-                hubitat.set_presence(hubitatId, present)
+    for device in devices_to_find:
+        name = device
+        data = devices[name]
+        present: bool = name in devices_present
+        hubitatId: int = data.get("hubitatId", -1)
+        if "name" in data:
+            name = name + " (" + data["name"] + ")"
 
-        for name in devices_to_remove:
-            devices_to_find.remove(name)
+        logging.info(f"{'PRESENT' if present else ' ABSENT'} - {name} - RSSI={rssi} ")
 
-        if not devices_to_find:
-            return
+        if hubitatId > 0:
+            hubitat.set_presence(hubitatId, present)
 
 
 CONFIG_FILE = "config.yaml"
