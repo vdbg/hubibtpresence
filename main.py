@@ -18,7 +18,7 @@ def report(runs: int, devices: dict, hubitat: Hubitat) -> None:
 
     devices_to_find: set = set(map(str.upper, devices.keys()))
     collector = Collector()
-    devices_present = set()
+    devices_present = dict()
 
     for _ in range(runs):
         collector.run()
@@ -37,20 +37,20 @@ def report(runs: int, devices: dict, hubitat: Hubitat) -> None:
                 minRSSI = data.get("minRSSI", -1000)
                 rssi = devices_found[device]
                 if rssi > minRSSI:
-                    devices_present.add(device)
+                    devices_present[device] = max(rssi, devices_present.get(device, -1000))
 
         if len(devices_present) == len(devices_to_find):
             break
 
     for device in devices_to_find:
-        name = device
-        data = devices[name]
+        data = devices[device]
         present: bool = name in devices_present
         hubitatId: int = data.get("hubitatId", -1)
+        name = device
         if "name" in data:
             name = name + " (" + data["name"] + ")"
 
-        logging.info(f"{'PRESENT' if present else ' ABSENT'} - {name} - RSSI={rssi} ")
+        logging.info(f"{'PRESENT' if present else ' ABSENT'} - {name} - RSSI={devices_present.get(device, None)} ")
 
         if hubitatId > 0:
             hubitat.set_presence(hubitatId, present)
