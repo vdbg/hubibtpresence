@@ -14,31 +14,44 @@ logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=lo
 
 
 def report(runs: int, devices: dict, hubitat: Hubitat) -> None:
-    logging.info(f"Running bluetooth scanning {runs} time(s)...")
+    logging.info(f"Running bluetooth scanning up to {runs} time(s)...")
 
+    devices_to_find: set = set(map(str.upper, devices.keys()))
     collector = Collector()
-    collector.run_times(runs)
+    devices_present = dict()
 
-    devices_found = collector.devices_rssi
+    for _ in range(runs):
+        collector.run()
 
-    if logging.root.isEnabledFor(logging.DEBUG):
-        for mac, rssi in sorted(devices_found.items()):
-            logging.debug(f"{mac}:{rssi}")
+        devices_found = collector.devices_rssi
 
-    for device, data in devices.items():
-        name = device
-        if data and "name" in data:
-            name = name + " (" + data["name"] + ")"
-        present: bool = False
-        rssi = None
-        if device.upper() in devices_found:
-            minRSSI = data.get("minRSSI", -1000)
-            rssi = devices_found[device]
-            present = rssi > minRSSI
+        if logging.root.isEnabledFor(logging.DEBUG):
+            for mac, rssi in sorted(devices_found.items()):
+                logging.debug(f"{mac}:{rssi}")
 
-        logging.info(f"{'PRESENT' if present else ' ABSENT'} - {name} - RSSI={rssi} ")
+        for device in devices_to_find:
+            name = device
+            data = devices[name]
+            rssi = None
+            if device in devices_found:
+                minRSSI = data.get("minRSSI", -1000)
+                rssi = devices_found[device]
+                if rssi > minRSSI:
+                    devices_present[device] = max(rssi, devices_present.get(device, -1000))
 
+        if len(devices_present) == len(devices_to_find):
+            break
+
+    for device in devices_to_find:
+        data = devices[device]
+        present: bool = name in devices_present
         hubitatId: int = data.get("hubitatId", -1)
+        name = device
+        if "name" in data:
+            name = name + " (" + data["name"] + ")"
+
+        logging.info(f"{'PRESENT' if present else ' ABSENT'} - {name} - RSSI={devices_present.get(device, None)} ")
+
         if hubitatId > 0:
             hubitat.set_presence(hubitatId, present)
 

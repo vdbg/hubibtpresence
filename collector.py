@@ -36,10 +36,6 @@ class Collector:
         else:
             logging.debug(f"Found {devices_found} device(s).")
 
-    def run_times(self, times: int) -> None:
-        for _ in range(times):
-            self.run()
-
     def gather_all(self, extra_runs: int) -> None:
         no_new: int = 0
         while True:
