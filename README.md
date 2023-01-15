@@ -119,14 +119,15 @@ It is recommended to test/tune the scanner before moving to containers. Once tes
 sudo docker run -d \
   --name hubibtpresence \
   --restart always \
+  --memory=100m \
   -v path_to_your/config.yaml:/app/config.yaml \
   --privileged --net=host \
-  image_name
+  vdbg/hubibtpresence:latest
 ```
 
 With:
 * `path_to_your/config.yaml`: the full path to the properly configured config.yaml
-* `image_name`: `vdbg/hubibtpresence` if using the pre-built image, or the name you gave if built locally from the sources with `sudo docker build -t image_name hubibtscan`
+* `vdbg/hubibtpresence:latest` replace with your image name if you built the image locally, otherwise leave as is
 * `--privileged --net=host`: required options for the app to be able to access the BT scanner's BT adapter from the container
 
 Note: when the app within the container is performing its scans (every 3 minutes by default), the host won't be able to use BT anymore. For example `sudo btmgmt find` on the host will return `Unable to start discovery. status 0x0a (Busy)` during this time.
